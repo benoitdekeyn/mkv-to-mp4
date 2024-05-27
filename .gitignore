@@ -1,3 +1,4 @@
 #video files (too big for github)
-.mkv
-.mp4
+*.mkv
+*.mp4
+
