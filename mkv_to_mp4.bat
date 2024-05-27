@@ -19,7 +19,11 @@ echo If you want to convert a set of files, just write the relative or absolute 
 echo.
 set /p input_path_file=Enter the file or folder path : 
 echo.
+
 REM Check if the last character is a backslash and remove it
+
+set is_1_file=0
+
 if "%input_path_file:~-1%"=="\" (
     set input_path_file=%input_path_file:~0,-1%
 )
@@ -35,9 +39,10 @@ IF EXIST "%input_path_file%" (
             goto input_path
         )
         set folder_path=%input_path_file%
-        echo !files_count! .mkv files selected
+        echo !files_count! files selected
     ) ELSE (
         REM This is a file.
+        set is_1_file=1
         IF "%input_path_file:~-4%" NEQ ".mkv" (
             echo This is not a .mkv file, please try something else.
             goto input_path
@@ -49,19 +54,52 @@ IF EXIST "%input_path_file%" (
     echo Can't find this folder or file, please try something else.
     goto input_path
 )
-    
+
+echo.
+
 REM Choose the right audio and subtitle streams
 
-REM Detect the number of audio and subtitle streams
-for /f %%A in ('ffmpeg -i "%current_file%" 2^>^&1 ^| findstr /r "Stream.*Audio" ^| find /c /v ""') do set audio_count=%%A
-for /f %%A in ('ffmpeg -i "%current_file%" 2^>^&1 ^| findstr /r "Stream.*Subtitle" ^| find /c /v ""') do set sub_count=%%A
+set audio_count=0
+set sub_count=0
 
-REM check if all the files of a folder have the same streams (do it later)
-echo.
-echo There are %audio_count% audio and %sub_count% subtitle streams in your mkv file(s)
+if %is_1_file%==1 (
+    REM Get the number of audio and subtitle streams in the file
+    
+    for /f %%A in ('ffmpeg -i "%current_file%" 2^>^&1 ^| findstr /r "Stream.*Audio" ^| find /c /v ""') do set audio_count=%%A
+    for /f %%A in ('ffmpeg -i "%current_file%" 2^>^&1 ^| findstr /r "Stream.*Subtitle" ^| find /c /v ""') do set sub_count=%%A
+    
+    echo There are !audio_count! audio and !sub_count! subtitle streams in your .mkv file
+
+) ELSE (
+    REM Loop through each .mkv file in the directory to get the number of audio and subtitle streams
+    REM If the number of audio or subtitle streams is different between the files, stop the process
+    
+    for /R "%folder_path%" %%F in (*.mkv) do (
+        for /f %%A in ('ffmpeg -i "%%F" 2^>^&1 ^| findstr /r "Stream.*Audio" ^| find /c /v ""') do set temp_audio_count=%%A
+        for /f %%A in ('ffmpeg -i "%%F" 2^>^&1 ^| findstr /r "Stream.*Subtitle" ^| find /c /v ""') do set temp_sub_count=%%A
+        if !audio_count! ==0 (
+            set audio_count=!temp_audio_count!
+            set sub_count=!temp_sub_count!
+        ) ELSE (
+            if !temp_audio_count! NEQ !audio_count! (
+                echo The audio streams are not the same in your .mkv files, please try with another set of files.
+                echo !temp_audio_count! vs !audio_count!
+                goto input_path
+            ) else (
+                if !temp_sub_count! NEQ !sub_count! (
+                    echo The subtitle streams are not the same in your .mkv files, please try with another set of files.
+                    goto input_path
+                )
+            )
+        )
+    )
+    echo There are !audio_count! audio and !sub_count! subtitle streams in your mkv files
+)
+
 
 REM display the audio and subtitle streams with their ID and Title
 echo Each audio or subtitle stream have an ID (1, 2, 3...) and a language : 
+
 for /f "delims=" %%A in ('ffmpeg -i "%current_file%" 2^>^&1 ^| findstr /r "Stream.*Audio | Stream.*Subtitle"') do (
     for /f "tokens=2,3,4 delims=:()" %%B in ("%%A") do (
         set "lang=%%C"
