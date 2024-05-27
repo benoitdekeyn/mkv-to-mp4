@@ -34,8 +34,8 @@ IF EXIST "%input_path_file%" (
             echo There is no .mkv file in this folder, please try something else.
             goto input_path
         )
-        set current_file=%input_path_file%\*.mkv
-        echo !files_count! .mkv files found in this folder.
+        set folder_path=%input_path_file%
+        echo !files_count! .mkv files selected
     ) ELSE (
         REM This is a file.
         IF "%input_path_file:~-4%" NEQ ".mkv" (
