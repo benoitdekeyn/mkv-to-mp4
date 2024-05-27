@@ -13,29 +13,43 @@ REM Check if ffmpeg is installed (to do later)
 echo So first, you need to ensure that all the files you want to convert have the same streams (audio, video, subtitles)
 echo If you want to convert a file, write the relative or absolute path with the file name and extension. (ex : C:\Users\John\Videos\myvideo.mkv)
 echo If you want to convert a set of files, just write the relative or absolute path (ex : C:\Users\John\Videos)
+
+
+:input_path
 echo.
-
-REM the code below will be replaced by the user's input
-set files_path=example\3 episodes in mkv of the same serie
-set file_name=a.mkv
-set current_file=%files_path%\%file_name%
-
-REM Check if the folder, file and extension are founded and correct
-IF EXIST "%files_path%" (
-    IF EXIST "%current_file%" (
-        IF "%file_name:~-4%"==".mkv" (
-            echo Location and extension are OK
-        ) ELSE (
-            echo No .mkv file !
-        )
-    ) ELSE (
-        echo Can't find this file !
-    )
-) ELSE (
-    echo Can't find this folder !
+set /p input_path_file=Enter the file or folder path : 
+echo.
+REM Check if the last character is a backslash and remove it
+if "%input_path_file:~-1%"=="\" (
+    set input_path_file=%input_path_file:~0,-1%
 )
 
-
+REM Check if the folder or file is founded and correct
+IF EXIST "%input_path_file%" (
+    IF EXIST "%input_path_file%\*" (
+        REM This is a directory.
+        set files_count=0
+        for /f %%A in ('dir /b "%input_path_file%\*.mkv" 2^>nul ^| findstr /r /v "^$" ^| find /c /v ""') do set files_count=%%A
+        if !files_count!==0 (
+            echo There is no .mkv file in this folder, please try something else.
+            goto input_path
+        )
+        set current_file=%input_path_file%\*.mkv
+        echo !files_count! .mkv files found in this folder.
+    ) ELSE (
+        REM This is a file.
+        IF "%input_path_file:~-4%" NEQ ".mkv" (
+            echo This is not a .mkv file, please try something else.
+            goto input_path
+        )
+        set current_file=%input_path_file%
+        echo 1 file selected
+    )
+) ELSE (
+    echo Can't find this folder or file, please try something else.
+    goto input_path
+)
+    
 REM Choose the right audio and subtitle streams
 
 REM Detect the number of audio and subtitle streams
