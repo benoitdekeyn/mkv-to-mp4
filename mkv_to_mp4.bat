@@ -15,8 +15,11 @@ echo If you want to convert a file, write the relative or absolute path with the
 echo If you want to convert a set of files, just write the relative or absolute path (ex : C:\Users\John\Videos)
 echo If you want to convert files of all the sub-folders, type *** at the end of the path (ex : C:\Users\John\Videos\***)
 
+set current_directory=%cd%
 
 :input_path
+cd %current_directory%
+
 echo.
 
 set /p input_path=Enter the file or folder path :
@@ -86,9 +89,10 @@ if %is_1_file%==1 (
         goto input_path
     )
 )
-
-echo !files_count! files selected : 
+echo.
+echo %files_count% files selected : 
 for %%A in (!file_names!) do echo %%A
+echo.
 
 
 REM Now we are in the folder path, and have the list of file names and the number of files to convert
@@ -173,33 +177,26 @@ REM Create the subfolder
 set "sub_folder=subtitles"
 if not exist "%sub_folder%" mkdir "%sub_folder%"
 
-
+set counter=0
 REM Loop through the list of files to extract the subtitles
-for %%A in (!file_names!) do (
+for %%A in (!file_names!) do (*
+    set /a counter+=1
     set "current_mkv_file=%%~nxA"
     set "current_sub_file=%sub_folder%\%%~nA.srt"
-    color 09
-    echo Extraction of subtitles from !current_mkv_file! to !current_sub_file! :
-    color
+    powershell -Command "Write-Host 'Extraction of subtitles from !current_mkv_file! to !current_sub_file! :' -ForegroundColor Blue"
     ffmpeg -i "!current_mkv_file!" -map 0:%sub_id% "!current_sub_file!"
     if exist !current_sub_file! (
-        color 0A
-        echo !current_sub_file! successfully created
-        color
+        powershell -Command "Write-Host '############ %%~nA.srt successfully created (!counter!/%files_count%) ############' -ForegroundColor Green"
     ) else (
-        color 0C
-        echo Failed to create !current_sub_file! 
+        powershell -Command "Write-Host 'Failed to create !current_sub_file!' -ForegroundColor Red" 
         pause
-        color
         exit
     )
 )
 
 echo.
 echo.
-color 0A
-echo ---------------- ALL SUBTITLES EXTRACTED ----------------
-color
+powershell -Command "Write-Host '---------------- ALL SUBTITLES SUCCESSFULLY EXTRACTED ----------------' -ForegroundColor Green"
 echo.
 echo.
 
@@ -209,38 +206,35 @@ REM Create the subfolder
 set "mp4_folder=mp4 converted"
 
 if exist "%mp4_folder%" (
-    echo The folder "%mp4_folder%" already exists, the files will be overwritten.
+   powershell -Command "Write-Host 'The folder "%mp4_folder%" already exists, the files will be overwritten.' -ForegroundColor Yellow"
     set /p "overwrite=Do you want to continue ? (y/n) : "
     if /i "%overwrite%" NEQ "y" (
-        echo Processus aborted by the user.
-        pause
-        goto :input_path
-    ) else (
         rmdir /s /q "%mp4_folder%"
         mkdir "%mp4_folder%"
+    ) else (
+        powershell -Command "Write-Host 'Processus aborted by the user.' -ForegroundColor Red"
+        pause
+        goto input_path
     )
 ) else (
     mkdir "%mp4_folder%"
 )
 
-
+set counter=0
 REM Loop through the list of files to convert them
 for %%A in (!file_names!) do (
+    set /a counter+=1
     set "current_mkv_file=%%~nxA"
     set "current_mp4_file=%mp4_folder%\%%~nA.mp4"
-    color 09
-    echo Creation of !current_mp4_file! :
-    color
+    powershell -Command "Write-Host 'Creation of !current_mp4_file! :' -ForegroundColor Blue"
     ffmpeg -i "!current_mkv_file!" -map 0:v -map 0:%audio_id% -vf subtitles="!sub_folder!/%%~nA.srt" "!current_mp4_file!"
     if exist !current_mp4_file! (
-        color 0A
-        echo !current_mp4_file! successfully created
-        color
+        echo.
+        powershell -Command "Write-Host '############ %%~nxA successfully converted (!counter!/%files_count%) ############' -ForegroundColor Green"
+        echo.
     ) else (
-        color 0C
-        echo Failed to create !current_mp4_file! 
+        powershell -Command "Write-Host 'Failed to create !current_mp4_file! ' -ForegroundColor Red"
         pause
-        color
         exit
     )
 )
@@ -251,12 +245,12 @@ rmdir /s /q "%sub_folder%"
 
 echo.
 echo.
-color 0A
-echo ---------------- ALL FILES CONVERTED ----------------
-color
+powershell -Command "Write-Host '---------------------- ALL FILES SUCCESSFULLY CONVERTED ------------------------' -ForegroundColor Green"
 echo.
 echo.
 
 
 REM Open the folder with the converted files
 explorer "%mp4_folder%"
+
+pause
