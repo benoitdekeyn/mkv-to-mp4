@@ -1,3 +1,4 @@
+
 @echo off
 setlocal enabledelayedexpansion
 
@@ -22,7 +23,7 @@ cd %current_directory%
 
 echo.
 
-set /p input_path=Enter the file or folder path :
+set /p input_path=Enter the file or folder path : 
 set "folder_path="
 set is_1_file=0
 
@@ -89,11 +90,15 @@ if %is_1_file%==1 (
         goto input_path
     )
 )
+REM remove the last semicolon
+set "file_names=!file_names:~0,-1!"
+
 echo.
 echo %files_count% files selected : 
-for %%A in (!file_names!) do echo %%A
+for /f "delims=;" %%F in ("!file_names!") do (
+    echo - %%F
+)
 echo.
-
 
 REM Now we are in the folder path, and have the list of file names and the number of files to convert
 
@@ -123,7 +128,7 @@ if !sub_count! EQU 0 (
 
 REM if we have several files to compare the compatibility of streams, we loop through the files
 if is_1_file==0 (
-    for %%F in (!file_names!) do (
+    for /f "delims=;" %%F in ("!file_names!") do (
         for /f %%A in ('ffmpeg -i "%%F" 2^>^&1 ^| findstr /r "Stream.*Audio" ^| find /c /v ""') do set temp_audio_count=%%A
         for /f %%A in ('ffmpeg -i "%%F" 2^>^&1 ^| findstr /r "Stream.*Subtitle" ^| find /c /v ""') do set temp_sub_count=%%A
         if !temp_audio_count! NEQ !audio_count! (
@@ -179,7 +184,7 @@ if not exist "%sub_folder%" mkdir "%sub_folder%"
 
 set counter=0
 REM Loop through the list of files to extract the subtitles
-for %%A in (!file_names!) do (*
+for /f "delims=;" %%A in ("!file_names!") do (
     set /a counter+=1
     set "current_mkv_file=%%~nxA"
     set "current_sub_file=%sub_folder%\%%~nA.srt"
@@ -222,7 +227,7 @@ if exist "%mp4_folder%" (
 
 set counter=0
 REM Loop through the list of files to convert them
-for %%A in (!file_names!) do (
+for /f "delims=;" %%A in ("!file_names!") do (
     set /a counter+=1
     set "current_mkv_file=%%~nxA"
     set "current_mp4_file=%mp4_folder%\%%~nA.mp4"
