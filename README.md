@@ -6,4 +6,6 @@ It can perform the algorithm on all the files of a folder if all the .mkv files 
 
 An tiny example is provided into the example folder.
 
+You can also download the .exe file [here](https://github.com/benoitdekeyn/mkv-to-mp4/raw/b5eb5e43aede9e3e414435e69593e81adfd8ddb7/mkv2mp4.exe)
+
 If any question, bug or improvement to report, don't hesitate to send an issue on the github and contact me by email : pubbdk@gmail.com
