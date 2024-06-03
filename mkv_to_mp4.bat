@@ -14,7 +14,8 @@ REM Check if ffmpeg is installed (to do later)
 echo So first, you need to ensure that all the files you want to convert have the same streams (audio, video, subtitles)
 echo If you want to convert a file, write the relative or absolute path with the file name and extension. (ex : C:\Users\John\Videos\myvideo.mkv)
 echo If you want to convert a set of files, just write the relative or absolute path (ex : C:\Users\John\Videos)
-echo If you want to convert files of all the sub-folders, type *** at the end of the path (ex : C:\Users\John\Videos\***)
+
+powershell -Command "Write-Host 'Your file names can NOT contain characters such as^: ^! ^^^ & .. ; () ' -ForegroundColor Yellow"
 
 set current_directory=%cd%
 
@@ -26,6 +27,8 @@ echo.
 set /p input_path=Enter the file or folder path : 
 set "folder_path="
 set is_1_file=0
+
+echo.
 
 REM Check if the last character is a backslash and remove it
 if "%input_path:~-1%"=="\" (
@@ -56,7 +59,9 @@ if exist "%input_path%" (
 REM Change the current directory to the folder path, to use easily relative paths
 cd %folder_path%
 
-
+REM Create the subfolder to store the subtitles and a txt file to store the file names
+set "temp=temp"
+if not exist "%temp%" mkdir "%temp%"
 
 REM Now, we'll check the mkv files, if there is and if they have the same streams
 
@@ -64,8 +69,9 @@ REM Now, we'll check the mkv files, if there is and if they have the same stream
 
 REM Check if there are .mkv files in the folder or if the file is a .mkv file
 
-REM Here the future list of names of the mkv files to convert
-set "file_names="
+REM Here the future list of names of the mkv files to convert in a txt file, so we create the txt file
+set "file_names=%temp%\file_names.txt"
+type nul > %file_names%
 set files_count=0
 
 if %is_1_file%==1 (
@@ -75,14 +81,14 @@ if %is_1_file%==1 (
         goto input_path
     )
     REM We add only the filename and extension to the list of file names
-    for %%A in ("%input_path%") do set "file_names=!file_names!%%~nxA;"
+    for %%A in ("%input_path%") do echo %%~nxA >> %file_names%
     set files_count=1
 
 ) else (
     REM Loop through all the .mkv files in the folder
     for %%A in (*.mkv) do (
         REM We add only the filename and extension to the list of file names
-        set "file_names=!file_names!%%~nxA;"
+        echo %%~nxA >> %file_names%
         set /a files_count+=1
     )
     if !files_count!==0 (
@@ -90,16 +96,44 @@ if %is_1_file%==1 (
         goto input_path
     )
 )
-REM remove the last semicolon
-set "file_names=!file_names:~0,-1!"
+REM check for the special characters : ( ) { } [] ^ & , .. ! ;
+set "error_count=0"
+for /f "tokens=1 delims=" %%i in (%file_names%) do (
+    set "str=%%i"
+    call set "stri=%%str:&=CHANGE%%"
+    if not "!stri!"=="%%i" echo the character '^&' is not allowed in "%%i" & set /a error_count+=1
+    call set "stri=%%str:,=CHANGE%%"
+    if not "!stri!"=="%%i" echo the character '^,' is not allowed in "%%i" & set /a error_count+=1
+    call set "stri=%%str:..=CHANGE%%"
+    if not "!stri!"=="%%i" echo the character '^..' is not allowed in "%%i" & set /a error_count+=1
+    call set "stri=%%str:(=CHANGE%%"
+    if not "!stri!"=="%%i" echo the character '^(' is not allowed in "%%i" & set /a error_count+=1
+    call set "stri=%%str:)=CHANGE%%"
+    if not "!stri!"=="%%i" echo the character '^)' is not allowed in "%%i" & set /a error_count+=1
+    call set "stri=%%str:{=CHANGE%%"
+    if not "!stri!"=="%%i" echo the character '^{' is not allowed in "%%i" & set /a error_count+=1
+    call set "stri=%%str:}=CHANGE%%"
+    if not "!stri!"=="%%i" echo the character '^}' is not allowed in "%%i" & set /a error_count+=1
+    call set "stri=%%str:[=CHANGE%%"
+    if not "!stri!"=="%%i" echo the character '^[' is not allowed in "%%i" & set /a error_count+=1
+    call set "stri=%%str:]=CHANGE%%"
+    if not "!stri!"=="%%i" echo the character '^]' is not allowed in "%%i" & set /a error_count+=1
+    REM characters such as ^, !, ; are not even catchable without provoking an error
+)
+
+if %error_count% gtr 0 (
+    echo.
+    echo Naming errors had been found. Please rename your files and retry.
+    echo.
+    pause
+    goto input_path
+)
+
 
 echo.
 echo %files_count% files selected : 
-for /f "delims=;" %%F in ("!file_names!") do (
-    echo - %%F
-)
+for /f "tokens=1 delims=" %%A in (%file_names%) do echo - %%A
 echo.
-
 REM Now we are in the folder path, and have the list of file names and the number of files to convert
 
 REM Choose the right audio and subtitle streams
@@ -109,7 +143,7 @@ set sub_count=0
 
 REM Put into first_file, the first file of the list
 set "first_file="
-for /f "tokens=1 delims=;" %%A in ("!file_names!") do set first_file=%%A
+for /f "tokens=1 delims=" %%A in (%file_names%) do set first_file=%%A
 
 
 REM Get the number of audio and subtitle streams in the first file
@@ -128,7 +162,7 @@ if !sub_count! EQU 0 (
 
 REM if we have several files to compare the compatibility of streams, we loop through the files
 if is_1_file==0 (
-    for /f "delims=;" %%F in ("!file_names!") do (
+    for /f "tokens=1 delims=" %%F in (%file_names%) do (
         for /f %%A in ('ffmpeg -i "%%F" 2^>^&1 ^| findstr /r "Stream.*Audio" ^| find /c /v ""') do set temp_audio_count=%%A
         for /f %%A in ('ffmpeg -i "%%F" 2^>^&1 ^| findstr /r "Stream.*Subtitle" ^| find /c /v ""') do set temp_sub_count=%%A
         if !temp_audio_count! NEQ !audio_count! (
@@ -178,20 +212,16 @@ REM Now we will convert the files
 REM First step is to extract the subtitles into a .srt file for each file of the list
 REM The srt files will be in a subfolder and named as the original file with a .srt instead of .mkv
 
-REM Create the subfolder
-set "sub_folder=subtitles"
-if not exist "%sub_folder%" mkdir "%sub_folder%"
-
 set counter=0
 REM Loop through the list of files to extract the subtitles
-for /f "delims=;" %%A in ("!file_names!") do (
+for /f "tokens=1 delims=" %%A in (%file_names%) do (
     set /a counter+=1
     set "current_mkv_file=%%~nxA"
-    set "current_sub_file=%sub_folder%\%%~nA.srt"
+    set "current_sub_file=%temp%\%%~nA.srt"
     powershell -Command "Write-Host 'Extraction of subtitles from !current_mkv_file! to !current_sub_file! :' -ForegroundColor Blue"
     ffmpeg -i "!current_mkv_file!" -map 0:%sub_id% "!current_sub_file!"
     if exist !current_sub_file! (
-        powershell -Command "Write-Host '############ %%~nA.srt successfully created (!counter!/%files_count%) ############' -ForegroundColor Green"
+        powershell -Command "Write-Host '############ %%~nA.srt successfully created (!counter! / %files_count%) ############' -ForegroundColor Green"
     ) else (
         powershell -Command "Write-Host 'Failed to create !current_sub_file!' -ForegroundColor Red" 
         pause
@@ -227,12 +257,12 @@ if exist "%mp4_folder%" (
 
 set counter=0
 REM Loop through the list of files to convert them
-for /f "delims=;" %%A in ("!file_names!") do (
+for /f "tokens=1 delims=" %%A in (%file_names%) do (
     set /a counter+=1
     set "current_mkv_file=%%~nxA"
     set "current_mp4_file=%mp4_folder%\%%~nA.mp4"
     powershell -Command "Write-Host 'Creation of !current_mp4_file! :' -ForegroundColor Blue"
-    ffmpeg -i "!current_mkv_file!" -map 0:v -map 0:%audio_id% -vf subtitles="!sub_folder!/%%~nA.srt" "!current_mp4_file!"
+    ffmpeg -i "!current_mkv_file!" -map 0:v -map 0:%audio_id% -vf subtitles="!temp!/%%~nA.srt" "!current_mp4_file!"
     if exist !current_mp4_file! (
         echo.
         powershell -Command "Write-Host '############ %%~nxA successfully converted (!counter!/%files_count%) ############' -ForegroundColor Green"
@@ -244,8 +274,8 @@ for /f "delims=;" %%A in ("!file_names!") do (
     )
 )
 
-REM delete the subtitles folder
-rmdir /s /q "%sub_folder%"
+REM delete the subtitles and filenames folder
+rmdir /s /q "%temp%"
 
 
 echo.
