@@ -96,6 +96,8 @@ if %is_1_file%==1 (
         goto input_path
     )
 )
+REM remove the last semicolon
+set "file_names=!file_names:~0,-1!"
 
 REM check for the special characters : ( ) { } [] ^ & , .. ! ;
 set "error_count=0"
