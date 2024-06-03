@@ -96,9 +96,6 @@ if %is_1_file%==1 (
         goto input_path
     )
 )
-REM remove the last semicolon
-set "file_names=!file_names:~0,-1!"
-
 REM check for the special characters : ( ) { } [] ^ & , .. ! ;
 set "error_count=0"
 for /f "tokens=1 delims=" %%i in (%file_names%) do (
@@ -137,7 +134,6 @@ echo.
 echo %files_count% files selected : 
 for /f "tokens=1 delims=" %%A in (%file_names%) do echo %%A
 echo.
-pause
 REM Now we are in the folder path, and have the list of file names and the number of files to convert
 
 REM Choose the right audio and subtitle streams
