@@ -132,7 +132,7 @@ if %error_count% gtr 0 (
 
 echo.
 echo %files_count% files selected : 
-for /f "tokens=1 delims=" %%A in (%file_names%) do echo %%A
+for /f "tokens=1 delims=" %%A in (%file_names%) do echo - %%A
 echo.
 REM Now we are in the folder path, and have the list of file names and the number of files to convert
 
