@@ -15,9 +15,9 @@ If any question, bug or improvement to report, don't hesitate to send an issue o
 
 
 # Technical Specification
-- ## Project      : Frogger Game
-- ## Language     : FPGA
-- ## Last Update  : September 23th, 2024
+- ### Project      : Frogger Game
+- ### Language     : FPGA
+- ### Last Update  : September 23th, 2024
 
 
 | Role | Name |
