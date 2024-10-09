@@ -19,15 +19,14 @@ If any question, bug or improvement to report, don't hesitate to send an issue o
 - ### Language     : FPGA
 - ### Last Update  : September 23th, 2024
 
-
 | Role | Name |
 |---|---|
 | Project Manager | [Laurent BOUQUIN](https://github.com/laurentbouquin) |
 | Program Manager | [Pavlo PRENDI](https://github.com/PavloPrendi) |
-| Tech Lead | [Benoît DE KEYN](https://github.com/benoitdekeyn) |
+| Tech Le| [Benoît DE KEYN](https://github.com/benoitdekeyn) |
 | Software Engineer | [Maxime THIZEAU](https://github.com/MaximeTAlgosup) |
-| Software Engineer | [Tino GABET]() |
-| Quality Assurance | [Paul NOWAK](https://github.com/PaulNowak36) |
+| Software Enneer | [Tino GABET]() |
+| Quality Assance | [Paul NOWAK](https://github.com/PaulNowak36) |
 | Technical Writer | [Thomas PLANCHARD](https://github.com/thomas-planchard) |
 
 
