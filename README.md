@@ -12,22 +12,3 @@ An tiny example is provided into the example folder.
 You can also download the .exe file [here](https://github.com/benoitdekeyn/mkv-to-mp4/raw/b5eb5e43aede9e3e414435e69593e81adfd8ddb7/mkv2mp4.exe)
 
 If any question, bug or improvement to report, don't hesitate to send an issue on the github and contact me by email : pubbdk@gmail.com
-
-
-# Technical Specification
-- ### Project      : Frogger Game
-- ### Language     : FPGA
-- ### Last Update  : September 23th, 2024
-
-
-| Role | Name |
-|---|---|
-| Project Manager | [Laurent BOUQUIN](https://github.com/laurentbouquin) |
-| Program Manager | [Pavlo PRENDI](https://github.com/PavloPrendi) |
-| Tech Lead | [Benoît DE KEYN](https://github.com/benoitdekeyn) |
-| Software Engineer | [Maxime THIZEAU](https://github.com/MaximeTAlgosup) |
-| Software Engineer | [Tino GABET]() |
-| Quality Assurance | [Paul NOWAK](https://github.com/PaulNowak36) |
-| Technical Writer | [Thomas PLANCHARD](https://github.com/thomas-planchard) |
-
-
