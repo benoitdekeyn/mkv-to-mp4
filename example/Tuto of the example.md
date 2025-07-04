@@ -8,5 +8,5 @@ Then, select streams `3` then `1`  (for japanese audio and french subtitles) and
 
 
 
-If any question, bug or improvement to report, don't hesitate to send an issue on the github and contact me by email : pubbdk@gmail.com
+If any question, bug or improvement to report, don't hesitate to send an issue on the github and contact me by email : benoitdkn@gmail.com
 
